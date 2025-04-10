@@ -1,0 +1,52 @@
+Home Address Transaction Analysis
+Question:
+We were given two tables one with user info and another with their transactions and asked to find out what percentage of orders were shipped to a user's home address.
+Solution:
+CREATE TABLE transactions (
+id INT PRIMARY KEY,
+user_id INT,
+created_at DATETIME,
+shipping_address VARCHAR(255)
+);
+
+-- Transactions sample data
+INSERT INTO transactions (id, user_id, created_at, shipping_address) VALUES
+(1, 1, '2025-01-15 10:30:00', '123 Main St'), 
+(2, 1, '2025-01-16 11:45:00', '789 Oak Ave'), 
+(3, 2, '2025-01-17 14:20:00', '456 Elm St'), 
+(4, 2, '2025-01-18 15:10:00', '123 Pine Rd'), 
+(5, 3, '2025-01-19 16:05:00', '789 Oak Ave'), 
+(6, 3, '2025-01-20 17:40:00', '123 Main St'),
+(7, 3, '2025-01-21 17:45:00', '123 Main St');
+
+CREATE TABLE users1 (
+id INT PRIMARY KEY,
+name VARCHAR(255),
+address VARCHAR(255)
+);
+
+-- Users sample data
+INSERT INTO users1 (id, name, address) VALUES
+(1, 'John Doe', '123 Main St'),
+(2, 'Jane Smith', '456 Elm St'),
+(3, 'Alice Johnson', '789 Oak Ave');
+
+-- Do not modify the schema or data definitions above
+
+-- Implement your SQL query below, utilizing the provided schema
+
+with CTE1 as
+(
+select count(t.id) as c1 from transactions t
+join users1 u on t.user_id = u.id
+where t.shipping_address = u.address
+),
+CTE2 as
+(
+select count(t.id) as c2 from transactions t
+join users1 u on t.user_id = u.id
+--where t.shipping_address != u.address
+)
+select round((cast(CTE1.c1 as float)/ cast(CTE2.c2 as float)) * 100 ,2) as home_address_percent from CTE1,CTE2
+Impact:
+The identification of users with multiple shipping addresses could reveal shared account usage or collective purchasing patterns, suggesting opportunities for new features like multi-user profiles or group-based discount offerings.
