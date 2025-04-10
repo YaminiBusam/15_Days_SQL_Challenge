@@ -1,0 +1,38 @@
+Product Sales by Month
+Question:
+Given a table of monthly sales, we had to find the total amount sold for each product per month showing each product as its own column in the output.
+Solution:
+CREATE TABLE monthly_sales (
+month DATE,
+product_id INTEGER,
+amount_sold INTEGER
+);
+
+INSERT INTO monthly_sales (month, product_id, amount_sold) VALUES
+('2021-01-01', 1, 100),
+('2021-01-01', 2, 300),
+('2021-02-01', 1, 150),
+('2021-02-01', 1, 50),
+('2021-02-01', 2, 250),
+('2021-03-01', 1, 120),
+('2021-03-01', 4, 250),
+('2021-04-01', 2, -30),
+('2021-04-01', 3, 200),
+('2021-05-01', 3, 175),
+('2021-06-01', 1, 0),
+('2021-06-01', 2, 100);
+with prod as 
+(
+select month, product_id, 
+sum(amount_sold) over (partition by month(month))  as Total_amount
+from monthly_sales
+)
+select month,
+      SUM(case when product_id =1 then amount_sold else 0 end) as product_1,
+      SUM(case when product_id =2 then amount_sold else 0 end) as product_2,
+      SUM(case when product_id =3 then amount_sold else 0 end) as product_3,
+      SUM(case when product_id =4 then amount_sold else 0 end) as product_4
+from monthly_sales
+group by month
+Impact:
+This query transforms raw transaction data into actionable business intelligence, enabling retail managers to track product performance trends month-over-month, identify seasonal patterns, and make informed decisions about marketing focus and inventory optimization based on historical demand signals.
