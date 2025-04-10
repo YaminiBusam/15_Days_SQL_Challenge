@@ -1,0 +1,47 @@
+Above Average Product Prices
+Question:
+Given a list of products and their prices, along with a table of transactions and their amounts, the task was to identify products that are priced above the average transaction amount.
+The output required: product_id, product_price, and the average_transaction_price.
+Solution:
+CREATE TABLE products (
+product_id INT PRIMARY KEY,
+price DECIMAL(10,2)
+);
+
+INSERT INTO products (product_id, price) VALUES
+(1, 100.00),
+(2, 150.00),
+(3, 75.00),
+(4, 200.00),
+(5, 120.00);
+
+CREATE TABLE transactions1 (
+transaction_id INT PRIMARY KEY,
+product_id INT,
+amount DECIMAL(10,2),
+FOREIGN KEY (product_id) REFERENCES products(product_id)
+);
+
+INSERT INTO transactions1 (transaction_id, product_id, amount) VALUES
+(1, 1, 95.00),
+(2, 1, 98.00),
+(3, 2, 145.00),
+(4, 2, 150.00),
+(5, 3, 70.00),
+(6, 4, 190.00),
+(7, 4, 195.00),
+(8, 5, 115.00);
+
+create view v1 as
+with PT as
+(
+select p.product_id,p.price,t.transaction_id, t.amount
+from products p
+join transactions1 t
+on p.product_id = t.product_id
+)
+select *, Avg(amount) over() Avg_amount from  PT 
+
+select distinct product_id, price as product_price, Avg_amount  as avg_transaction_price from v1 where price > Avg_amount
+Impact:
+This query identifies products consistently outperforming average transaction values, revealing prime upselling candidates and high-margin items that drive revenue growth.RetryClaude can make mistakes. Please double-check responses.
