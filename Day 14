@@ -1,0 +1,24 @@
+Month Revenue Growth Analysis
+Question:
+Calculate the month-over-month change in revenue for each month of 2019 based on product transactions. The challenge includes joining multiple tables, computing revenue, and comparing monthly changes in percentage format.
+Solution:
+with cte as(
+select t.id,t.product_id, t.quantity,t.created_at, p.price,
+strftime('%m',t.created_at) as month,
+strftime('%Y',t.created_at) as year
+from 
+transactions t join products p 
+on t.product_id = p.id
+)
+select month, 
+round(((currentrevenue-previousrevenue)*100/previousrevenue),2 )as month_over_month
+from
+(
+select month, year
+cast(sum(quantity*price) as float)as currentrevenue,
+cast(lag(sum(quantity*price)) over() as float) as previousrevenue
+from cte 
+group by month) as sub
+where year = 2019
+Impact:
+Rapid identification of revenue fluctuations enables teams to detect seasonal patterns or product issues promptly, allowing for timely interventions like promotional campaigns, inventory adjustments, or feature modifications.
