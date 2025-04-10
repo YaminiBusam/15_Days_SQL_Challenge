@@ -1,0 +1,72 @@
+Click Through Rate By Age
+Question:
+Find which three age groups had the highest click-through rates (CTR) in 2021. The twist? Age should be based on the exact date of the search event meaning if someone had a birthday during the year, they might fall into a different group for different events.
+Solution:
+CREATE TABLE users27 (
+id INTEGER PRIMARY KEY,
+name VARCHAR(100),
+birthdate DATETIME
+);
+
+INSERT INTO users27 (id, name, birthdate) VALUES
+(1, 'Alice', '1995-05-15'),
+(2, 'Bob', '1985-03-20'),
+(3, 'Charlie', '2005-07-10'),
+(4, 'David', '1955-11-30'),
+(5, 'Eve', '2015-09-25'),
+(6, 'Frank', '1935-02-14'),
+(7, 'Grace', '1975-12-01');
+
+CREATE TABLE search_events (
+search_id INTEGER PRIMARY KEY,
+query VARCHAR(255),
+has_clicked Boolean,
+user_id INTEGER,
+search_time DATETIME,
+FOREIGN KEY (user_id) REFERENCES users27(id)
+);
+
+INSERT INTO search_events (search_id, query, has_clicked, user_id, search_time) VALUES
+
+(1, 'travel', TRUE, 1, '2021-03-15 10:00:00'),
+(2, 'books', FALSE, 1, '2021-03-15 11:00:00'),
+(3, 'cars', TRUE, 2, '2021-05-20 14:30:00'),
+(4, 'tech', TRUE, 2, '2021-05-20 15:00:00'),
+(5, 'games', FALSE, 3, '2021-07-10 16:45:00'),
+(6, 'music', FALSE, 3, '2021-07-10 17:00:00'),
+(7, 'retirement', TRUE, 4, '2021-09-05 09:15:00'),
+(8, 'health', FALSE, 4, '2021-09-05 10:00:00'),
+(9, 'toys', FALSE, 5, '2021-11-25 13:20:00'),
+(10, 'genealogy', TRUE, 6, '2021-12-01 11:30:00'),
+(11, 'history', TRUE, 6, '2021-12-01 12:00:00'),
+(12, 'finance', TRUE, 7, '2021-02-15 08:45:00'),
+(13, 'investing', FALSE, 7, '2021-02-15 09:00:00');
+
+with cte as(
+select * ,
+case when bm < currentmonth or bm = currentmonth then 'birthday done' else 'yet to come' end as birthdayornot,
+case when age between 0 and 9 then '0-9' 
+     when age between 10 and 19 then '10-19' 
+	 when age between 20 and 29 then '20-29'
+	 when age between 30 and 39 then '30-39'
+	 when age between 40 and 49 then '40-49'
+	 when age between 50 and 59 then '50-59'
+	 when age between 60 and 69 then '60-69'
+	 when age between 70 and 79 then '70-79'
+	 when age between 80 and 89 then '80-89'
+	 when age between 90 and 99 then '90-99'
+end as age_group  
+from 
+(select 
+u.id, u.name , u.birthdate, se.search_id,se.query, se.has_clicked, se.search_time,
+CAST((julianday(se.search_time) - julianday(u.birthdate))/365.25 AS INTEGER) AS age ,
+strftime('%m',u.birthdate) as bm, strftime('%m',se.search_time) as currentmonth
+from users u join search_events se 
+ on u.id= se.user_id  
+) as s1 
+)
+select age_group,
+sum(has_clicked) * 1.0 /count(search_id) as ctr
+from cte group by age_group order by ctr desc limit 3
+Impact:
+User experience insights based on age demographics can drive targeted UI modifications, content curation, and onboarding processes—particularly when older adults demonstrate high engagement rates, allowing platforms to optimize interfaces specifically for their most active user segments.
