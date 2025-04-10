@@ -1,0 +1,53 @@
+Third Unique Song Play Date
+Question:
+Find the earliest time each user played their third unique song. The goal is to return the username, song ID, and the timestamp of that third song play, based on data from users and song_plays tables.
+Solution:
+CREATE TABLE users2 (
+id INTEGER PRIMARY KEY,
+username VARCHAR(50)
+);
+
+INSERT INTO users2 (id, username) VALUES
+(1, 'john_doe'),
+(2, 'jane_smith'),
+(3, 'bob_wilson');
+
+CREATE TABLE song_plays (
+id INTEGER PRIMARY KEY,
+played_at DATETIME,
+user_id INTEGER,
+song_id INTEGER
+);
+INSERT INTO song_plays (id, played_at, user_id, song_id) VALUES
+(1, '2024-01-01 10:00:00', 1, 101),
+(2, '2024-01-01 14:00:00', 1, 101),
+(3, '2024-01-02 09:00:00', 1, 102),
+(4, '2024-01-03 16:00:00', 1, 103),
+(5, '2024-01-04 11:00:00', 1, 104),
+(6, '2024-01-01 09:00:00', 2, 201),
+(7, '2024-01-01 15:00:00', 2, 202),
+(8, '2024-01-02 10:00:00', 2, 203),
+(9, '2024-01-02 14:00:00', 2, 203),
+(10, '2024-01-01 12:00:00', 3, 301),
+(11, '2024-01-02 13:00:00', 3, 302);
+
+create view vew as
+with c as(
+select distinct user_id, song_id, 
+count(song_id) over(partition by user_id ) [cnt_sngs] 
+from song_plays )
+select * from c 
+join users2 on c.user_id = users2.id where cnt_sngs >2
+--drop view vew,vew2
+create view vew2 as
+with tmp as (
+select * , row_number() over(partition by user_id order by  user_id) as rowno_songs
+from vew )
+select tmp.user_id, tmp.song_id as tmpsongid,tmp.username,song_plays.played_at, song_plays.song_id from tmp 
+join song_plays on tmp.user_id = song_plays.user_id
+where rowno_songs = 3 and tmp.song_id = song_plays.song_id
+
+select distinct username, song_id, Min(Played_at) over(partition by song_id ) as created_at from vew2 
+
+Impact:
+Understanding when users engage with their third unique song can help streaming platforms trigger timely features like playlist creation prompts or premium trial offers at this critical engagement milestone.
