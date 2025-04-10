@@ -1,0 +1,43 @@
+Most Recent Transaction
+Question:
+Given a table of customer sales with columns for transaction ID, transaction amount, and timestamp, we were asked to find the last transaction of each day.
+The final output should include the transaction ID, time, and value ordered by datetime.
+Solution:
+CREATE TABLE customer_sales (
+id INT PRIMARY KEY,
+transaction_value DECIMAL(10, 2),
+created_at DATETIME
+);
+
+INSERT INTO customer_sales (id, transaction_value, created_at)
+VALUES
+(1, 50.00, '2025-01-23 10:15:00'),
+(2, 30.00, '2025-01-23 15:45:00'),
+(3, 20.00, '2025-01-23 18:30:00'),
+(4, 45.00, '2025-01-24 09:20:00'),
+(5, 60.00, '2025-01-24 22:10:00'),
+(6, 25.00, '2025-01-25 11:30:00'),
+(7, 35.00, '2025-01-25 14:50:00'),
+(8, 55.00, '2025-01-25 19:05:00');
+
+with cte as
+(
+select row_number() over(partition by Day(created_at) order by created_at) as rankno, *
+from customer_sales 
+)
+select * from cte 
+
+with A1 as
+(
+select 
+id ,
+created_at,
+transaction_value,
+Max(created_at) over(partition by Day(created_at)) as max_rank
+from customer_sales
+)
+select id , created_at, transaction_value
+from A1
+where created_at = max_rank
+Impact:
+This versatile tracking logic extends beyond sales to monitor employee time patterns – recording first clock-ins and last clock-outs daily – making it ideal for attendance monitoring, shift management, or analyzing remote work behaviors.
