@@ -1,0 +1,41 @@
+Single vs Repeat Job Poster
+Question:
+We were given a table of job postings and asked to identify:
+1) How many users posted each job only once
+2) How many users posted at least one job multiple times
+Solution:
+CREATE TABLE job_postings (
+    id INT PRIMARY KEY,
+    user_id INT,
+    job_id INT,
+    posted_date DATETIME
+);
+
+INSERT INTO job_postings (id, user_id, job_id, posted_date) VALUES
+    (1, 1, 101, '2024-01-01'),
+    (2, 1, 102, '2024-01-02'),
+    (3, 2, 201, '2024-01-01'),
+    (4, 2, 201, '2024-01-15'),
+    (5, 2, 202, '2024-01-03'),
+    (6, 3, 301, '2024-01-01'),
+    (7, 4, 401, '2024-01-01'),
+    (8, 4, 401, '2024-01-15'),
+    (9, 4, 402, '2024-01-02'),
+    (10, 4, 402, '2024-01-16'),
+    (11, 5, 501, '2024-01-05'),
+    (12, 5, 502, '2024-01-10');
+with cte1 as(
+select distinct count(user_id)as single_post_users
+from 
+(select user_id,job_id ,count(job_id) over(partition by job_id) as jobidcount from job_postings) as sub 
+where jobidcount=1 
+), 
+cte2 as (
+select distinct count(user_id)as multiple_post_users
+from 
+(select user_id,job_id, count(job_id) jobidcount from job_postings group by job_id,user_id) as sub 
+where jobidcount>1
+)
+select distinct * from cte1,cte2
+Impact:
+Analyzing repeatedly posted job listings can identify positions with high turnover or low application rates, suggesting potential improvements in job descriptions or candidate targeting strategies.
